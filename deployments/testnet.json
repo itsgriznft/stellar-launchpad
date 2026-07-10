@@ -1,0 +1,19 @@
+{
+  "network": "testnet",
+  "admin": "GDGMCDU5HPC2Z7B6XO67IO5AZZR6NRITVS3E47WJ7LAQJBNAX2I2NJTC",
+  "token": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+  "campaignWasmHash": "42edbba3bde26ce3ea7c4ab4307323b9ce1c43f4722f9bd631771303ab6b38f7",
+  "factoryId": "CATTEK3T244RH3FR7REACNB3XXFCW4CG7R7U7WHPYPZM2H36NIP6R4JC",
+  "campaigns": [
+    {
+      "address": "CARVL57ZINRL3ORII4VYBG5Z6UUUNJPFTN4S2RGWRYRHNK2Q5NXIXCXX",
+      "title": "Fund the Soroban docs",
+      "goal": "5000000000"
+    },
+    {
+      "address": "CCZOY7VLDW5PIEND37OR6YIWXSYFLV7X4K2XVJ2GO354M3GHJAF23NMC",
+      "title": "Community meetup fund",
+      "goal": "2000000000"
+    }
+  ]
+}
