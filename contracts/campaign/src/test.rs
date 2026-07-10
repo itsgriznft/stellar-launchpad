@@ -78,7 +78,10 @@ fn contribute_accumulates_and_counts_unique_contributors() {
 
     let state = s.contract.state();
     assert_eq!(state.raised, 175);
-    assert_eq!(state.contributors, 2, "alice contributing twice counts once");
+    assert_eq!(
+        state.contributors, 2,
+        "alice contributing twice counts once"
+    );
     assert_eq!(s.contract.contribution(&s.alice), 125);
     assert_eq!(s.contract.contribution(&s.bob), 50);
 

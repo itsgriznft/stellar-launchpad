@@ -178,7 +178,9 @@ impl Factory {
             );
 
         campaigns.push_back(address.clone());
-        env.storage().instance().set(&DataKey::Campaigns, &campaigns);
+        env.storage()
+            .instance()
+            .set(&DataKey::Campaigns, &campaigns);
 
         Created {
             creator,

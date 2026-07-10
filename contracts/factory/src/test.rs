@@ -64,7 +64,10 @@ fn create_deploys_a_live_campaign_contract() {
         .create(&s.alice, &title(&s.env, "Fund the docs"), &500, &s.deadline);
 
     assert!(s.factory.is_campaign(&address));
-    assert_eq!(s.factory.campaigns(), soroban_sdk::vec![&s.env, address.clone()]);
+    assert_eq!(
+        s.factory.campaigns(),
+        soroban_sdk::vec![&s.env, address.clone()]
+    );
 
     // The deployed contract is a real, independently callable campaign.
     let state = campaign::Client::new(&s.env, &address).state();
@@ -79,9 +82,15 @@ fn create_deploys_a_live_campaign_contract() {
 fn each_campaign_gets_its_own_address_even_from_one_creator() {
     let s = setup();
 
-    let first = s.factory.create(&s.alice, &title(&s.env, "One"), &100, &s.deadline);
-    let second = s.factory.create(&s.alice, &title(&s.env, "Two"), &200, &s.deadline);
-    let third = s.factory.create(&s.bob, &title(&s.env, "Three"), &300, &s.deadline);
+    let first = s
+        .factory
+        .create(&s.alice, &title(&s.env, "One"), &100, &s.deadline);
+    let second = s
+        .factory
+        .create(&s.alice, &title(&s.env, "Two"), &200, &s.deadline);
+    let third = s
+        .factory
+        .create(&s.bob, &title(&s.env, "Three"), &300, &s.deadline);
 
     assert_ne!(first, second);
     assert_ne!(second, third);
@@ -101,15 +110,23 @@ fn a_deployed_campaign_escrows_contributions() {
     campaign.contribute(&s.bob, &120);
 
     assert_eq!(campaign.state().raised, 120);
-    assert_eq!(s.token.balance(&address), 120, "token escrowed in the campaign");
+    assert_eq!(
+        s.token.balance(&address),
+        120,
+        "token escrowed in the campaign"
+    );
     assert_eq!(s.token.balance(&s.bob), 880);
 }
 
 #[test]
 fn listing_reads_state_from_every_campaign() {
     let s = setup();
-    let first = s.factory.create(&s.alice, &title(&s.env, "One"), &100, &s.deadline);
-    let second = s.factory.create(&s.bob, &title(&s.env, "Two"), &400, &s.deadline);
+    let first = s
+        .factory
+        .create(&s.alice, &title(&s.env, "One"), &100, &s.deadline);
+    let second = s
+        .factory
+        .create(&s.bob, &title(&s.env, "Two"), &400, &s.deadline);
 
     campaign::Client::new(&s.env, &first).contribute(&s.bob, &60);
 
@@ -149,8 +166,12 @@ fn listing_pages_through_campaigns() {
 #[test]
 fn stats_aggregate_across_campaigns() {
     let s = setup();
-    let first = s.factory.create(&s.alice, &title(&s.env, "One"), &100, &s.deadline);
-    let second = s.factory.create(&s.bob, &title(&s.env, "Two"), &400, &s.deadline);
+    let first = s
+        .factory
+        .create(&s.alice, &title(&s.env, "One"), &100, &s.deadline);
+    let second = s
+        .factory
+        .create(&s.bob, &title(&s.env, "Two"), &400, &s.deadline);
 
     // Fully fund the first, partially fund the second.
     campaign::Client::new(&s.env, &first).contribute(&s.bob, &100);
@@ -177,7 +198,8 @@ fn stats_on_an_empty_factory_are_zero() {
 #[test]
 fn is_campaign_rejects_addresses_the_factory_did_not_deploy() {
     let s = setup();
-    s.factory.create(&s.alice, &title(&s.env, "One"), &100, &s.deadline);
+    s.factory
+        .create(&s.alice, &title(&s.env, "One"), &100, &s.deadline);
     assert!(!s.factory.is_campaign(&Address::generate(&s.env)));
 }
 
@@ -191,8 +213,12 @@ fn create_validates_its_arguments() {
         Err(Ok(Error::TitleEmpty))
     );
     assert_eq!(
-        s.factory
-            .try_create(&s.alice, &title(&s.env, TITLE_OVER_LIMIT), &100, &s.deadline),
+        s.factory.try_create(
+            &s.alice,
+            &title(&s.env, TITLE_OVER_LIMIT),
+            &100,
+            &s.deadline
+        ),
         Err(Ok(Error::TitleTooLong))
     );
     assert_eq!(
