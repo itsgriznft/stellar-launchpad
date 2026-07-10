@@ -1,5 +1,8 @@
 # Stellar Launchpad
 
+[![CI](https://github.com/itsgriznft/stellar-launchpad/actions/workflows/ci.yml/badge.svg)](https://github.com/itsgriznft/stellar-launchpad/actions/workflows/ci.yml)
+[![Deploy](https://github.com/itsgriznft/stellar-launchpad/actions/workflows/deploy.yml/badge.svg)](https://github.com/itsgriznft/stellar-launchpad/actions/workflows/deploy.yml)
+
 A crowdfunding launchpad on Stellar, built from two Soroban contracts that talk to each other.
 
 A **factory** deploys a fresh **campaign** contract for every fundraiser, remembers where each one
@@ -46,6 +49,11 @@ sha256 is exactly the hash the factory deploys from.
   <img src="screenshots/03-mobile-launchpad.png" alt="Launchpad on mobile" width="300">
   <img src="screenshots/04-mobile-detail.png" alt="Campaign detail on mobile" width="300">
 </p>
+
+**CI/CD** — every push runs `cargo fmt --check`, the contract build in dependency order, 26 contract
+tests, then the frontend's lint, 41 tests, and production build. `main` deploys to GitHub Pages.
+
+![CI pipeline](screenshots/05-ci-pipeline.png)
 
 **Tests** — 26 contract tests and 41 frontend tests. Full output in [screenshots/test-output.txt](screenshots/test-output.txt).
 
