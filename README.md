@@ -13,6 +13,7 @@ pull their own money back.
 Built for **Level 3 — Orange Belt** of the [Stellar Journey to Mastery](https://www.risein.com/programs/stellar-journey-to-mastery-monthly-builder-challenges) builder challenge.
 
 **Live demo:** https://itsgriznft.github.io/stellar-launchpad/
+**Demo video (1:51):** [screenshots/demo.mp4](screenshots/demo.mp4) — connect Freighter, contribute on-chain, deploy a campaign through the factory
 
 ---
 
@@ -36,6 +37,10 @@ The recorded wasm hash is reproducible: `make build` on this tree produces a `ca
 sha256 is exactly the hash the factory deploys from.
 
 ## Screenshots
+
+**Demo video** — [screenshots/demo.mp4](screenshots/demo.mp4) (1:51): wallet connect, a 100 XLM
+contribution confirmed on-chain, and a new campaign deployed from the UI via the factory's
+`deploy_v2` — GitHub plays it right from the link.
 
 **Launchpad** — stats and every campaign card come from the factory's cross-contract reads.
 
