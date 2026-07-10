@@ -1,0 +1,36 @@
+$ cargo test    # contracts
+running 13 tests
+test test::contribute_requires_contributor_auth ... ok
+test test::withdraw_blocked_when_goal_missed ... ok
+test test::contribute_rejects_after_deadline ... ok
+test test::contribute_fails_when_contributor_is_short_on_funds ... ok
+test test::contribute_rejects_non_positive_amounts ... ok
+test test::state_reports_the_title_and_terms_it_was_created_with ... ok
+test test::constructor_rejects_zero_goal - should panic ... ok
+test test::constructor_rejects_past_deadline - should panic ... ok
+test test::refund_blocked_when_goal_was_met ... ok
+test test::contribute_emits_contributed_event_the_frontend_can_index ... ok
+test test::withdraw_pays_recipient_once_goal_met_after_deadline ... ok
+test test::refund_returns_money_after_failed_campaign ... ok
+test test::contribute_accumulates_and_counts_unique_contributors ... ok
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+running 13 tests
+test test::stats_on_an_empty_factory_are_zero ... ok
+test test::set_campaign_wasm_requires_the_admin_to_sign ... ok
+test test::create_requires_the_creator_to_sign ... ok
+test test::create_validates_its_arguments ... ok
+test test::is_campaign_rejects_addresses_the_factory_did_not_deploy ... ok
+test test::create_accepts_a_title_at_the_length_limit ... ok
+test test::create_deploys_a_live_campaign_contract ... ok
+test test::set_campaign_wasm_redirects_future_deployments ... ok
+test test::a_deployed_campaign_escrows_contributions ... ok
+test test::stats_aggregate_across_campaigns ... ok
+test test::listing_reads_state_from_every_campaign ... ok
+test test::each_campaign_gets_its_own_address_even_from_one_creator ... ok
+test test::listing_pages_through_campaigns ... ok
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+$ npm test --prefix web    # frontend
+ Test Files  3 passed (3)
+      Tests  41 passed (41)
+   Duration  280ms (transform 90ms, setup 0ms, import 245ms, tests 21ms, environment 0ms)
