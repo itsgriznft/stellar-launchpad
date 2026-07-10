@@ -26,8 +26,10 @@ Everything below is live on Stellar **testnet**.
 | **Campaign wasm hash** | `42edbba3bde26ce3ea7c4ab4307323b9ce1c43f4722f9bd631771303ab6b38f7` |
 | **Campaign #1** (factory-deployed) | [`CARVL57ZINRL3ORII4VYBG5Z6UUUNJPFTN4S2RGWRYRHNK2Q5NXIXCXX`](https://stellar.expert/explorer/testnet/contract/CARVL57ZINRL3ORII4VYBG5Z6UUUNJPFTN4S2RGWRYRHNK2Q5NXIXCXX) |
 | **Campaign #2** (factory-deployed) | [`CCZOY7VLDW5PIEND37OR6YIWXSYFLV7X4K2XVJ2GO354M3GHJAF23NMC`](https://stellar.expert/explorer/testnet/contract/CCZOY7VLDW5PIEND37OR6YIWXSYFLV7X4K2XVJ2GO354M3GHJAF23NMC) |
-| **Contract call — `contribute`** | [`ec60d7586cc6ccb141eaeeefbcd52793ed5215c65bdc279b506ddcad05efee71`](https://stellar.expert/explorer/testnet/tx/ec60d7586cc6ccb141eaeeefbcd52793ed5215c65bdc279b506ddcad05efee71) |
-| **Contract call — `contribute`** | [`c1e3860386d69ce73a9ef4123ba03ef0c56268b895e07d035785ad270636e92a`](https://stellar.expert/explorer/testnet/tx/c1e3860386d69ce73a9ef4123ba03ef0c56268b895e07d035785ad270636e92a) |
+| **Campaign #3** — *deployed from the UI, signed with Freighter* | [`CCKEGZWTQCKL65FTHMLBVXBIOCQ27T3ZIJNAURY4GLNZOJ4DRXC4BOJO`](https://stellar.expert/explorer/testnet/contract/CCKEGZWTQCKL65FTHMLBVXBIOCQ27T3ZIJNAURY4GLNZOJ4DRXC4BOJO) |
+| **`create`, signed in this UI** | [`2fa173d47ad8922f44e30026703d1cb75313902a8ea3645642b7f25558781844`](https://stellar.expert/explorer/testnet/tx/2fa173d47ad8922f44e30026703d1cb75313902a8ea3645642b7f25558781844) |
+| **`contribute`, signed in this UI** | [`dc2f2b1758659bce2b617b3e585e4c4516a43d571fffe6e193c411d2bdcb4395`](https://stellar.expert/explorer/testnet/tx/dc2f2b1758659bce2b617b3e585e4c4516a43d571fffe6e193c411d2bdcb4395) |
+| **`contribute`, from the CLI** | [`ec60d7586cc6ccb141eaeeefbcd52793ed5215c65bdc279b506ddcad05efee71`](https://stellar.expert/explorer/testnet/tx/ec60d7586cc6ccb141eaeeefbcd52793ed5215c65bdc279b506ddcad05efee71) |
 | **Campaign token** | Native XLM, via its Stellar Asset Contract |
 
 The recorded wasm hash is reproducible: `make build` on this tree produces a `campaign.wasm` whose
@@ -156,7 +158,14 @@ screen rather than blanking the page.
 | `INSUFFICIENT_BALANCE` | Amount exceeds spendable balance — caught before signing, and again from the token contract's `BalanceError` (`Error(Contract, #10)`) |
 | `ACCOUNT_NOT_FUNDED` | Account doesn't exist on testnet yet |
 | `CONTRACT_REJECTED` | A contract said no (campaign ended, goal met, title too long…) |
-| `NETWORK` | RPC unreachable, or the transaction didn't confirm in time |
+| `NETWORK` | RPC unreachable, the transaction didn't confirm in time, or the network rejected it (`txTooLate`, `txBadSeq`, `txInsufficientFee`) |
+
+Three failure classes reach the UI and each is decoded rather than dumped: the wallet's own errors, the
+*contracts'* error codes (`Error(Contract, #N)`), and the *network's* transaction result codes from
+`sendTransaction`. The last one is easy to miss — a real Freighter run surfaced `txTooLate` as raw XDR
+because the transaction had been built minutes before the wallet prompt was answered. Transactions are
+now valid for five minutes, and the code is translated. On failure the status panel keeps the stages that
+did succeed marked done, and marks the one that stopped.
 
 **Mobile.** Single-column below 900px, 44px tap targets, and no horizontal scroll at any width from
 320px up — verified by measuring `scrollWidth` against `clientWidth`, not by eye.

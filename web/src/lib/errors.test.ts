@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { AppError, classifyError } from './errors';
+import { AppError, classifyError, transactionResultError } from './errors';
 
 describe('classifyError', () => {
   it('passes AppError through untouched', () => {
@@ -50,5 +50,31 @@ describe('classifyError', () => {
   it('handles throws that are not Errors', () => {
     expect(classifyError('user rejected').kind).toBe('USER_REJECTED');
     expect(classifyError({ message: 'not installed' }).kind).toBe('WALLET_NOT_FOUND');
+  });
+});
+
+describe('transactionResultError', () => {
+  // A real Freighter run surfaced `txTooLate` as a raw XDR dump in the UI: the
+  // transaction had been built minutes before the user finished reading the
+  // wallet prompt. These codes come from the network, not from a contract.
+  it('explains why the network rejected the transaction', () => {
+    const late = transactionResultError('txTooLate');
+    expect(late.kind).toBe('NETWORK');
+    expect(late.message).toMatch(/expired/i);
+    expect(late.hint).toMatch(/nothing was charged/i);
+  });
+
+  it('routes fee and balance failures to the kinds the UI already explains', () => {
+    expect(transactionResultError('txInsufficientBalance').kind).toBe('INSUFFICIENT_BALANCE');
+    expect(transactionResultError('txNoAccount').kind).toBe('ACCOUNT_NOT_FUNDED');
+    expect(transactionResultError('txInsufficientFee').kind).toBe('NETWORK');
+    expect(transactionResultError('txBadSeq').kind).toBe('NETWORK');
+  });
+
+  it('keeps an unknown code searchable instead of dumping XDR', () => {
+    const unknown = transactionResultError('txSomethingNew');
+    expect(unknown.kind).toBe('NETWORK');
+    expect(unknown.message).not.toMatch(/_maxDepth|_switch|\{/);
+    expect(unknown.hint).toBe('Result code: txSomethingNew');
   });
 });

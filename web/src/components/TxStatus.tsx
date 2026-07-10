@@ -16,24 +16,30 @@ export function TxStatus({ progress }: { progress: TxProgress }) {
 
   const failed = progress.stage === 'failed';
   const succeeded = progress.stage === 'success';
-  const currentIndex = ORDER.indexOf(progress.stage);
+
+  // On failure the current stage is `failed`, which is not in ORDER; use the
+  // stage it got stuck in so everything before it still reads as done.
+  const currentIndex = ORDER.indexOf(failed ? (progress.failedAt ?? 'idle') : progress.stage);
 
   return (
     <section className={`card tx tx--${progress.stage}`} aria-live="polite">
-      <h3>
-        {succeeded ? 'Contribution confirmed' : failed ? 'Contribution failed' : 'Contribution in progress'}
-      </h3>
+      {/* Both contributing and creating a campaign report through here. */}
+      <h3>{succeeded ? 'Transaction confirmed' : failed ? 'Transaction failed' : 'Transaction in progress'}</h3>
 
       <ol className="tx__stages">
         {STAGES.map(({ stage, label, detail }) => {
           const index = ORDER.indexOf(stage);
-          const done = succeeded || (currentIndex > index && !failed);
-          const active = progress.stage === stage;
+          const done = succeeded || currentIndex > index;
+          const stopped = failed && currentIndex === index;
+          const active = !failed && progress.stage === stage;
 
           return (
-            <li key={stage} className={done ? 'is-done' : active ? 'is-active' : failed ? 'is-stopped' : ''}>
+            <li
+              key={stage}
+              className={done ? 'is-done' : stopped ? 'is-stopped' : active ? 'is-active' : ''}
+            >
               <span className="tx__dot" aria-hidden="true">
-                {done ? '✓' : active ? '•' : ''}
+                {done ? '✓' : stopped ? '×' : active ? '•' : ''}
               </span>
               <div>
                 <strong>{label}</strong>

@@ -14,6 +14,13 @@
       "address": "CCZOY7VLDW5PIEND37OR6YIWXSYFLV7X4K2XVJ2GO354M3GHJAF23NMC",
       "title": "Community meetup fund",
       "goal": "2000000000"
+    },
+    {
+      "address": "CCKEGZWTQCKL65FTHMLBVXBIOCQ27T3ZIJNAURY4GLNZOJ4DRXC4BOJO",
+      "title": "Signed from the UI",
+      "goal": "2500000000",
+      "createdFrom": "frontend, signed with Freighter",
+      "createTx": "2fa173d47ad8922f44e30026703d1cb75313902a8ea3645642b7f25558781844"
     }
   ]
 }

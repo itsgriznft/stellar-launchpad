@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { formatXlm, isClosed, parseXlm, RESERVE_BUFFER_STROOPS } from '../config';
 import type { CampaignState } from '../lib/campaign';
 import { contribute } from '../lib/campaign';
 import { AppError, classifyError } from '../lib/errors';
-import type { TxProgress } from '../lib/rpc';
+import type { TxProgress, TxStage } from '../lib/rpc';
 import { signTransaction } from '../lib/wallet';
 import type { Wallet } from '../hooks/useWallet';
 
@@ -22,27 +22,38 @@ interface Props {
 export function ContributeForm({ address, state, wallet, progress, onProgress, onConfirmed }: Props) {
   const [amount, setAmount] = useState('25');
 
+  // Remember how far the transaction got, so a failure can say where it stopped
+  // instead of greying out stages that actually succeeded.
+  const reached = useRef<TxStage>('idle');
+
+  function report(next: TxProgress) {
+    reached.current = next.stage;
+    onProgress(next);
+  }
+
+  function fail(error: AppError) {
+    onProgress({ stage: 'failed', failedAt: reached.current, error });
+  }
+
   const busy = ['simulating', 'signing', 'submitting', 'confirming'].includes(progress.stage);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!wallet.address) return;
 
+    reached.current = 'idle';
     onProgress({ stage: 'idle' });
 
     let stroops: bigint;
     try {
       stroops = parseXlm(amount);
     } catch (caught) {
-      onProgress({ stage: 'failed', error: classifyError(caught) });
+      fail(classifyError(caught));
       return;
     }
 
     if (stroops <= 0n) {
-      onProgress({
-        stage: 'failed',
-        error: new AppError('CONTRACT_REJECTED', 'Contribution amount must be greater than zero.'),
-      });
+      fail(new AppError('CONTRACT_REJECTED', 'Contribution amount must be greater than zero.'));
       return;
     }
 
@@ -51,23 +62,22 @@ export function ContributeForm({ address, state, wallet, progress, onProgress, o
     // reserve plus fees.
     const spendable = wallet.balance === null ? null : wallet.balance - RESERVE_BUFFER_STROOPS;
     if (spendable !== null && stroops > spendable) {
-      onProgress({
-        stage: 'failed',
-        error: new AppError(
+      fail(
+        new AppError(
           'INSUFFICIENT_BALANCE',
           `You can contribute at most ${formatXlm(spendable > 0n ? spendable : 0n)} XLM.`,
           'Every account must keep a minimum balance on-chain. Fund this account with friendbot to raise the ceiling.',
         ),
-      });
+      );
       return;
     }
 
     try {
-      await contribute(address, wallet.address, stroops, (xdr) => signTransaction(xdr, wallet.address!), onProgress);
+      await contribute(address, wallet.address, stroops, (xdr) => signTransaction(xdr, wallet.address!), report);
       await wallet.refresh();
       onConfirmed();
     } catch (caught) {
-      onProgress({ stage: 'failed', error: classifyError(caught) });
+      fail(classifyError(caught));
     }
   }
 

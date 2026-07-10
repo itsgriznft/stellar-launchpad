@@ -556,8 +556,14 @@ a {
 }
 
 .tx__stages li.is-active,
-.tx__stages li.is-done {
+.tx__stages li.is-done,
+.tx__stages li.is-stopped {
   opacity: 1;
+}
+
+.is-stopped .tx__dot {
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .tx__stages strong {

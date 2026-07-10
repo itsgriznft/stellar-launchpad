@@ -43,6 +43,63 @@ const CONTRACT_ERRORS: Record<number, string> = {
  */
 const SAC_BALANCE_ERROR = 10;
 
+/**
+ * Reasons the *network* rejects a transaction outright, before any contract
+ * runs. These arrive as an `xdr.TransactionResult` from `sendTransaction`, and
+ * are a different failure class from the contract errors above.
+ *
+ * @see https://developers.stellar.org/docs/data/apis/horizon/api-reference/errors/result-codes/transactions
+ */
+const TX_RESULT_CODES: Record<string, { kind: ErrorKind; message: string; hint: string }> = {
+  txTooLate: {
+    kind: 'NETWORK',
+    message: 'The transaction expired before it reached the network.',
+    hint: 'It was signed too long after it was built. Try again — nothing was charged.',
+  },
+  txTooEarly: {
+    kind: 'NETWORK',
+    message: 'The transaction is not valid yet.',
+    hint: 'Your clock may be ahead of the network. Try again in a moment.',
+  },
+  txInsufficientFee: {
+    kind: 'NETWORK',
+    message: 'The fee was too low for the current network load.',
+    hint: 'Try again; the fee is recalculated each time.',
+  },
+  txInsufficientBalance: {
+    kind: 'INSUFFICIENT_BALANCE',
+    message: 'Your account cannot cover the transaction fee.',
+    hint: 'Fund it from the testnet friendbot.',
+  },
+  txNoAccount: {
+    kind: 'ACCOUNT_NOT_FUNDED',
+    message: 'The source account does not exist on this network.',
+    hint: 'Fund it with friendbot, and check your wallet is on testnet.',
+  },
+  txBadSeq: {
+    kind: 'NETWORK',
+    message: 'The transaction used a stale sequence number.',
+    hint: 'Another transaction from this account landed first. Try again.',
+  },
+  txBadAuth: {
+    kind: 'USER_REJECTED',
+    message: 'The transaction was not signed by the right key.',
+    hint: 'Check which account is selected in your wallet.',
+  },
+};
+
+/**
+ * Turn a transaction result code from `sendTransaction` into something a person
+ * can act on. Unknown codes keep their raw name rather than a generic message —
+ * the name is short and searchable, unlike the XDR it came from.
+ */
+export function transactionResultError(code: string): AppError {
+  const known = TX_RESULT_CODES[code];
+  if (known) return new AppError(known.kind, known.message, known.hint);
+
+  return new AppError('NETWORK', 'The network rejected the transaction.', `Result code: ${code}`);
+}
+
 const REJECTED = /reject|declin|denied|cancel|user closed|dismiss|not allowed/i;
 const NOT_FOUND = /not (connected|installed|available|found)|no wallet|provider is not|unavailable/i;
 const NETWORK = /network error|failed to fetch|timeout|econnrefused|502|503|504/i;

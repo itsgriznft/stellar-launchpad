@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { MAX_TITLE_LEN, parseXlm } from '../config';
 import { AppError, classifyError } from '../lib/errors';
 import { createCampaign } from '../lib/factory';
-import type { TxProgress } from '../lib/rpc';
+import type { TxProgress, TxStage } from '../lib/rpc';
 import { signTransaction } from '../lib/wallet';
 import type { Wallet } from '../hooks/useWallet';
 
@@ -26,20 +26,31 @@ export function CreateCampaignForm({ wallet, progress, onProgress, onCreated, on
   const [goal, setGoal] = useState('1000');
   const [days, setDays] = useState(30);
 
+  // Remember how far the transaction got, so a failure can say where it stopped
+  // instead of greying out stages that actually succeeded.
+  const reached = useRef<TxStage>('idle');
+
+  function report(next: TxProgress) {
+    reached.current = next.stage;
+    onProgress(next);
+  }
+
+  function fail(error: AppError) {
+    onProgress({ stage: 'failed', failedAt: reached.current, error });
+  }
+
   const busy = ['simulating', 'signing', 'submitting', 'confirming'].includes(progress.stage);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!wallet.address) return;
 
+    reached.current = 'idle';
     onProgress({ stage: 'idle' });
 
     const trimmed = title.trim();
     if (trimmed.length === 0) {
-      onProgress({
-        stage: 'failed',
-        error: new AppError('CONTRACT_REJECTED', 'Give the campaign a title.'),
-      });
+      fail(new AppError('CONTRACT_REJECTED', 'Give the campaign a title.'));
       return;
     }
 
@@ -47,14 +58,11 @@ export function CreateCampaignForm({ wallet, progress, onProgress, onCreated, on
     try {
       goalStroops = parseXlm(goal);
     } catch (caught) {
-      onProgress({ stage: 'failed', error: classifyError(caught) });
+      fail(classifyError(caught));
       return;
     }
     if (goalStroops <= 0n) {
-      onProgress({
-        stage: 'failed',
-        error: new AppError('CONTRACT_REJECTED', 'The goal must be greater than zero.'),
-      });
+      fail(new AppError('CONTRACT_REJECTED', 'The goal must be greater than zero.'));
       return;
     }
 
@@ -67,12 +75,12 @@ export function CreateCampaignForm({ wallet, progress, onProgress, onCreated, on
         goalStroops,
         deadline,
         (xdr) => signTransaction(xdr, wallet.address!),
-        onProgress,
+        report,
       );
       await wallet.refresh();
       onCreated(address);
     } catch (caught) {
-      onProgress({ stage: 'failed', error: classifyError(caught) });
+      fail(classifyError(caught));
     }
   }
 

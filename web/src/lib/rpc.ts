@@ -11,9 +11,15 @@ import {
 } from '@stellar/stellar-sdk';
 
 import { NETWORK_PASSPHRASE, RPC_URL, SIMULATION_SOURCE } from '../config';
-import { AppError, classifyError } from './errors';
+import { AppError, classifyError, transactionResultError } from './errors';
 
 export const server = new rpc.Server(RPC_URL);
+
+/**
+ * How long a built transaction stays valid. The clock starts at build time and
+ * the user still has to read and approve a wallet prompt, so this is generous.
+ */
+const TX_VALID_SECONDS = 300;
 
 export type TxStage =
   | 'idle'
@@ -28,6 +34,8 @@ export interface TxProgress {
   stage: TxStage;
   hash?: string;
   error?: AppError;
+  /** Which stage a failure happened in, so earlier ones stay marked done. */
+  failedAt?: TxStage;
 }
 
 /** Sign an XDR and hand back the signed XDR. Supplied by the wallet layer. */
@@ -73,7 +81,9 @@ export async function invoke(
   const account = await server.getAccount(source);
   const tx = new TransactionBuilder(account, { fee: BASE_FEE, networkPassphrase: NETWORK_PASSPHRASE })
     .addOperation(new Contract(contractId).call(method, ...args))
-    .setTimeout(120)
+    // The clock starts when the transaction is built, and the user still has to
+    // read and approve a wallet prompt. Two minutes is not enough for that.
+    .setTimeout(TX_VALID_SECONDS)
     .build();
 
   // Simulates, then attaches the Soroban auth entries and resource footprint.
@@ -86,7 +96,7 @@ export async function invoke(
   onStage({ stage: 'submitting' });
   const sent = await server.sendTransaction(signed);
   if (sent.status === 'ERROR') {
-    throw classifyError(new Error(JSON.stringify(sent.errorResult ?? sent)));
+    throw transactionResultError(resultCode(sent.errorResult));
   }
 
   onStage({ stage: 'confirming', hash: sent.hash });
@@ -111,7 +121,9 @@ async function waitForTransaction(
 
     if (result.status === rpc.Api.GetTransactionStatus.SUCCESS) return result;
     if (result.status === rpc.Api.GetTransactionStatus.FAILED) {
-      throw classifyError(new Error(resultMessage(result)));
+      // Contract errors surface during simulation, so a transaction that fails
+      // this late failed for a ledger-level reason.
+      throw transactionResultError(resultCode(result.resultXdr));
     }
     await sleep(1_000);
   }
@@ -124,15 +136,14 @@ async function waitForTransaction(
 }
 
 /**
- * Contract errors normally surface during simulation, so a transaction that
- * fails *after* submission failed for a ledger-level reason (bad sequence, fee
- * too low). Report that code rather than a bare status.
+ * Pull the transaction result code (`txTooLate`, `txBadSeq`, …) out of an XDR
+ * result. Falls back to a name rather than letting the raw XDR reach the UI.
  */
-function resultMessage(result: rpc.Api.GetFailedTransactionResponse): string {
+function resultCode(result: xdr.TransactionResult | undefined): string {
   try {
-    return `Transaction rejected by the network: ${result.resultXdr.result().switch().name}`;
+    return result?.result().switch().name ?? 'txUnknown';
   } catch {
-    return 'Transaction failed on-chain.';
+    return 'txUnknown';
   }
 }
 
