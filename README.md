@@ -13,7 +13,7 @@ pull their own money back.
 Built for **Level 3 — Orange Belt** of the [Stellar Journey to Mastery](https://www.risein.com/programs/stellar-journey-to-mastery-monthly-builder-challenges) builder challenge.
 
 **Live demo:** https://itsgriznft.github.io/stellar-launchpad/
-**Demo video (1:51):** [screenshots/demo.mp4](screenshots/demo.mp4) — connect Freighter, contribute on-chain, deploy a campaign through the factory
+**Demo video (1:51):** https://github.com/itsgriznft/stellar-launchpad/blob/main/screenshots/demo.mp4 — connect Freighter, contribute on-chain, deploy a campaign through the factory
 
 ---
 
@@ -62,7 +62,11 @@ tests, then the frontend's lint, 41 tests, and production build. `main` deploys 
 
 ![CI pipeline](screenshots/05-ci-pipeline.png)
 
-**Tests** — 26 contract tests and 41 frontend tests. Full output in [screenshots/test-output.txt](screenshots/test-output.txt).
+**Tests** — 26 contract tests and 41 frontend tests, all green.
+
+![Test output](screenshots/06-test-output.png)
+
+Raw output in [screenshots/test-output.txt](screenshots/test-output.txt).
 
 ---
 
